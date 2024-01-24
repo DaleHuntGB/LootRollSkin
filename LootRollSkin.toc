@@ -1,0 +1,16 @@
+## Interface: 100205
+## Version: 1.0.0
+## Title: Loot Roll Skin
+## IconAtlas: mechagon-projects
+## Author: |cFF8080FFUnhalted|r
+## SavedVariables: LRSkinDB
+## OptionalDeps: Ace3
+## X-Embeds: Ace3
+
+libs.xml
+
+Core.lua
+
+Events.lua
+Commands.lua
+UI.lua
