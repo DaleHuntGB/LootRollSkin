@@ -140,6 +140,14 @@ local function updateFrame(frame, rollID)
 	frame.bar.rollID = rollID
 	frame.bar.itemInfo = rollItemInfo
 
+	function ItemTip()
+		GameTooltip:SetOwner(frame.icon, "ANCHOR_TOPRIGHT")
+		GameTooltip:SetLootRollItem(frame.bar.rollID)
+		print(frame.bar.itemInfo[2])
+	end
+
+	frame.icon:SetScript("OnEnter", ItemTip)
+
 	frame.need:SetEnabled(rollItemInfo[6]) --
 	frame.greed:SetEnabled(rollItemInfo[7])
 	frame.disenchant:SetEnabled(rollItemInfo[8])
