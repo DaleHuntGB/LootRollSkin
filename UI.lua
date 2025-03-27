@@ -25,7 +25,7 @@ local voteButtons = {
 local function createVoteButton(parent, roll)
 	local frame = CreateFrame("Button", nil, parent)
 	frame:SetFrameStrata("FULLSCREEN_DIALOG")
-	frame:SetSize(20, 20)
+	frame:SetSize(24, 24)
 	local buttonName = string.format("lootroll-toast-icon-%s", voteButtons[roll])
 
 	frame:SetNormalAtlas(string.format("%s-up", buttonName))
@@ -62,24 +62,30 @@ local function createNewFrame()
 	container.icon = container.bar:CreateTexture(nil, "OVERLAY")
 	container.icon:SetPoint("RIGHT", container.bar, "LEFT")
 	container.iconBg = CreateFrame("Frame", nil, container, "BackdropTemplate")
+	container.iconiLvlText = container:CreateFontString(nil, "OVERLAY")
+	container.iconiLvlText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	container.iconiLvlText:SetPoint("CENTER", container.icon, "CENTER", 0, 0)
+	container.iconiLvlText:SetTextColor(1, 1, 1, 1)
+	container.iconiLvlText:SetText("")
+	container.iconiLvlText:SetJustifyH("CENTER")
 	container.itemName = container.bar:CreateFontString()
-	container.itemName:SetPoint("LEFT", 5, 0)
+	container.itemName:SetPoint("LEFT", 3, 0)
 	container.spark = container.bar:CreateTexture(nil, "ARTWORK", nil, 1)
 	container.spark:SetBlendMode("BLEND")
 	container.spark:SetPoint("RIGHT", container.bar:GetStatusBarTexture())
 	container.border = CreateFrame("Frame", nil, container.bar, "BackdropTemplate")
 	container.border:SetAllPoints()
 
-	container.need = createVoteButton(container, 1)
-	container.need:SetPoint("RIGHT", -85, 0)
-	container.greed = createVoteButton(container, 2)
-	container.greed:SetPoint("RIGHT", -65, 0)
-	container.disenchant = createVoteButton(container, 3)
-	container.disenchant:SetPoint("RIGHT", -45, 0)
-	container.transmog = createVoteButton(container, 4)
-	container.transmog:SetPoint("RIGHT", -25, 0)
 	container.pass = createVoteButton(container, 0)
-	container.pass:SetPoint("RIGHT", -5, 0)
+	container.pass:SetPoint("RIGHT", -3, 0)
+	container.transmog = createVoteButton(container, 4)
+	container.transmog:SetPoint("RIGHT", container.pass, "LEFT", -3, 0)
+	container.disenchant = createVoteButton(container, 3)
+	container.disenchant:SetPoint("RIGHT", container.transmog, "LEFT", -3, 0)
+	container.greed = createVoteButton(container, 2)
+	container.greed:SetPoint("RIGHT", container.disenchant, "LEFT", -3, 0)
+	container.need = createVoteButton(container, 1)
+	container.need:SetPoint("RIGHT", container.greed, "LEFT", -3, 0)
 
 	tinsert(framePool, container)
 	return container
@@ -88,9 +94,7 @@ end
 local function updateFrame(frame, rollID)
 	-- Icon, Name, Count(0-x), Quality(1-5), BoP(true,false), Need(true,false), Greed(true,false), Disenchant(true,false), resonNeed(0-5), reasonGreed(0-5), reasonDisenchant(0-5), deSkillReq(0-x), Transmog(0,1)
 	local rollItemInfo = (LRS.anchoring and rollID == 0) and { 5205711, "Fyr'alath the Dreamrender", 1, 5, true, true, true, true, 0, 0, 0, 0, 1} or { GetLootRollItemInfo(rollID) }
-	if not rollItemInfo[1] then
-		return
-	end
+	if not rollItemInfo[1] then return end
 	local quality = ITEM_QUALITY_COLORS[rollItemInfo[4]].color
 	local backgroundColor = LRS.db.BackgroundColor == "QUALITY" and quality or CreateColorFromHexString(LRS.db.BackgroundColor)
 	local borderColor = LRS.db.BorderColor == "QUALITY" and quality or CreateColorFromHexString(LRS.db.BorderColor)
@@ -106,17 +110,9 @@ local function updateFrame(frame, rollID)
 
 	frame:ClearAllPoints()
 	frame:SetPoint(unpack(LRS.db.FrameAnchor))
-	frame.bar:SetBackdrop({
-		bgFile = backgroundTexture,
-	})
-	frame.border:SetBackdrop({
-		edgeFile = borderTexture,
-		edgeSize = borderSize,
-	})
-	frame.iconBg:SetBackdrop({
-		edgeFile = borderTexture,
-		edgeSize = borderSize,
-	})
+	frame.bar:SetBackdrop({ bgFile = backgroundTexture, })
+	frame.border:SetBackdrop({ edgeFile = borderTexture, edgeSize = borderSize, })
+	frame.iconBg:SetBackdrop({ edgeFile = borderTexture, edgeSize = borderSize, })
 	frame.iconBg:SetPoint("TOPLEFT", frame.icon, "TOPLEFT", -borderSize, borderSize)
 	frame.iconBg:SetPoint("BOTTOMRIGHT", frame.icon, "BOTTOMRIGHT", borderSize, -borderSize)
 	frame.icon:SetWidth(height - (borderSize * 2))
@@ -148,7 +144,10 @@ local function updateFrame(frame, rollID)
 	frame.icon:SetScript("OnEnter", ItemTip)
 	frame.icon:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
-	frame.need:SetEnabled(rollItemInfo[6]) --
+	local itemName, _, _, itemLevel = C_Item.GetItemInfo(rollItemInfo[1])
+	frame.iconiLvlText:SetText(itemLevel or "")
+
+	frame.need:SetEnabled(rollItemInfo[6])
 	frame.greed:SetEnabled(rollItemInfo[7])
 	frame.disenchant:SetEnabled(rollItemInfo[8])
 	frame.transmog:SetEnabled(rollItemInfo[13])
