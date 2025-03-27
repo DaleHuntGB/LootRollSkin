@@ -143,10 +143,10 @@ local function updateFrame(frame, rollID)
 	function ItemTip()
 		GameTooltip:SetOwner(frame.icon, "ANCHOR_TOPRIGHT")
 		GameTooltip:SetLootRollItem(frame.bar.rollID)
-		print(frame.bar.itemInfo[2])
 	end
 
 	frame.icon:SetScript("OnEnter", ItemTip)
+	frame.icon:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
 	frame.need:SetEnabled(rollItemInfo[6]) --
 	frame.greed:SetEnabled(rollItemInfo[7])
@@ -300,51 +300,24 @@ function LRS.CreateSettings()
 				LRS:ChangeSetting(sName, tonumber(frame.eb:GetText()) or 1)
 			end)
 		elseif sType == "DROPDOWN" then
-			frame.dd = CreateFrame("Frame", nil, frame, "SettingsSelectionPopoutWithButtonsTemplate")
+			frame.dd = CreateFrame("Frame", nil, frame, "UIDropDownMenuTemplate")
 			frame.dd:SetPoint("LEFT", frame, "RIGHT", 17, 0)
-			frame.dd:SetupSelections(ddValues, ddSelection)
+			UIDropDownMenu_SetWidth(frame.dd, 150)
+			UIDropDownMenu_SetText(frame.dd, ddValues[ddSelection].label)
 
-			local function updateSelection(_, selection)
-				LRS:ChangeSetting(sName, selection.value)
-			end
-			frame.dd.Button:RegisterCallback("OnValueChanged", updateSelection)
-			-- Overwrite the Function to force own settings
-			function frame.dd.Button:UpdatePopout()
-				self.buttonPool:ReleaseAll()
-				local selections = self:GetSelections()
-				local stride = #selections
-				local buttons = {}
-				local hasIneligibleChoice = false
-				local hasLockedChoice = false
-				for _, selectionData in ipairs(selections) do
-					if selectionData.ineligibleChoice then
-						hasIneligibleChoice = true
+			UIDropDownMenu_Initialize(frame.dd, function(self, level, menuList)
+				if not level then return end
+				for index, value in ipairs(ddValues) do
+					local info = UIDropDownMenu_CreateInfo()
+					info.text = value.label
+					info.value = value.value
+					info.func = function()
+						UIDropDownMenu_SetText(frame.dd, value.label)
+						LRS:ChangeSetting(sName, value.value)
 					end
-					if selectionData.isLocked then
-						hasLockedChoice = true
-					end
+					UIDropDownMenu_AddButton(info, level)
 				end
-				local maxDetailsWidth = 0
-				for index, selectionInfo in ipairs(selections) do
-					local button = self.buttonPool:Acquire()
-					local isSelected = (index == self.selectedIndex)
-					button:SetupEntry(selectionInfo, index, isSelected, false, hasIneligibleChoice, hasLockedChoice)
-					maxDetailsWidth = math.max(maxDetailsWidth, button.SelectionDetails:GetWidth())
-					table.insert(buttons, button)
-				end
-				for _, button in ipairs(buttons) do
-					button.SelectionDetails:SetWidth(maxDetailsWidth)
-					button:Layout()
-					button:Show()
-				end
-				if stride ~= self.lastStride then
-					self.layout =
-						AnchorUtil.CreateGridLayout(GridLayoutMixin.Direction.TopLeftToBottomRightVertical, stride)
-					self.lastStride = stride
-				end
-				AnchorUtil.GridLayout(buttons, self.initialAnchor, self.layout)
-				self.popoutNeedsUpdate = false
-			end
+			end)
 		end
 	end
 
