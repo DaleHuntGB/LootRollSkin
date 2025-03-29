@@ -171,9 +171,7 @@ function LRS:HideOtherLootFrames()
 	for i = 1, 100 do
 		local elvLR = _G["ElvUI_LootRollFrame" .. i]
 		local blizzLR = _G["GroupLootFrame" .. i]
-		if not elvLR and not blizzLR then
-			return
-		end
+		if not elvLR and not blizzLR then return end
 		if elvLR then elvLR:Hide() end
 		if elvLR and not elvLR.rasuHooked then
 			elvLR:HookScript("OnShow", instaHide)
