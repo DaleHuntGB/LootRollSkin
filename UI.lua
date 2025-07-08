@@ -41,6 +41,7 @@ end
 
 local function createNewFrame()
 	local container = CreateFrame("Frame", nil, UIParent)
+	container:SetFrameStrata("DIALOG")
 	container:SetPoint("CENTER", 0, #framePool * LRS.db.FrameHeight)
 	container.bar = CreateFrame("StatusBar", nil, container, "BackdropTemplate")
 	container.bar:SetMinMaxValues(0, 300)
@@ -136,9 +137,9 @@ local function updateFrame(frame, rollID)
 	frame.bar.rollID = rollID
 	frame.bar.itemInfo = rollItemInfo
 
-	function ItemTip()
-		GameTooltip:SetOwner(frame.icon, "ANCHOR_TOPRIGHT")
-		GameTooltip:SetLootRollItem(frame.bar.rollID)
+	local function ItemTip(self)
+		GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+		GameTooltip:SetLootRollItem(self:GetParent().bar.rollID)
 	end
 
 	frame.icon:SetScript("OnEnter", ItemTip)
@@ -168,6 +169,11 @@ local function instaHide(self)
 end
 
 function LRS:HideOtherLootFrames()
+	GroupLootContainer:HookScript("OnShow", function(self) self:Hide() end)
+	UIParentBottomManagedFrameContainer:HookScript("OnShow", function(self) self:Hide() end)
+	UIParentBottomManagedFrameContainer:Hide()
+	GroupLootContainer:EnableMouse(false)
+	UIParentBottomManagedFrameContainer:EnableMouse(false)
 	for i = 1, 100 do
 		local elvLR = _G["ElvUI_LootRollFrame" .. i]
 		local blizzLR = _G["GroupLootFrame" .. i]
@@ -187,12 +193,20 @@ end
 
 function LRS:GetRollFrame(rollId)
 	local rollFrame
-	for _, frame in pairs(framePool) do
-		if not frame.used then
+	-- for _, frame in pairs(framePool) do
+	-- 	if not frame.used then
+	-- 		rollFrame = frame
+	-- 		break
+	-- 	end
+	-- end
+
+	for _, frame in ipairs(framePool) do
+		if not frame:IsShown() and not frame.used then
 			rollFrame = frame
 			break
 		end
 	end
+
 	if not rollFrame then
 		rollFrame = createNewFrame()
 	end
