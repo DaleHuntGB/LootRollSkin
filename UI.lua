@@ -137,12 +137,21 @@ local function updateFrame(frame, rollID)
 	frame.bar.rollID = rollID
 	frame.bar.itemInfo = rollItemInfo
 
-	local function ItemTip(self)
-		GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
-		GameTooltip:SetLootRollItem(self:GetParent().bar.rollID)
-	end
+	-- local function ItemTip(self)
+	-- 	local parent = self:GetParent()
+	-- 	if not parent or not parent.bar or not parent.bar.rollID then
+	-- 		GameTooltip:Hide()
+	-- 		return
+	-- 	end
+	-- 	GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+	-- 	GameTooltip:SetLootRollItem(parent.bar.rollID)
+	-- end
 
-	frame.icon:SetScript("OnEnter", ItemTip)
+	frame.icon:SetScript("OnEnter", function(self)
+		if not self.rollID or self.rollID == 0 then return end
+		GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+		GameTooltip:SetLootRollItem(self.rollID)
+	end)
 	frame.icon:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
 	local itemName, _, _, itemLevel = C_Item.GetItemInfo(rollItemInfo[1])
